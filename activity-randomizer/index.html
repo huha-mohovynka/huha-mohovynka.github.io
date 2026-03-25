@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Activity Randomizer</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Activity Randomizer</h1>
+    <p>Choose filters or get a random idea.</p>
+
+    <div class="filters">
+      <div class="filter-group">
+        <label for="placeFilter">Indoor / Outdoor</label>
+        <select id="placeFilter">
+          <option value="all">All</option>
+          <option value="indoor">Indoor</option>
+          <option value="outdoor">Outdoor</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="moodFilter">Active / Calm</label>
+        <select id="moodFilter">
+          <option value="all">All</option>
+          <option value="active">Active</option>
+          <option value="calm">Calm</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="audienceFilter">For whom</label>
+        <select id="audienceFilter">
+          <option value="all">Anyone</option>
+          <option value="both">For us 👩🏽‍❤️‍👨🏻</option>
+          <option value="her">For her 🙋🏽‍♀️</option>
+          <option value="him">For him 🙋🏻</option>
+        </select>
+      </div>
+    </div>
+
+    <button id="randomBtn">Get random activity</button>
+    
+    <div class="choice-panel hidden" id="choicePanel">
+  <button class="choice-btn" id="choiceBtn1" type="button"></button>
+  <div class="choice-or">OR</div>
+  <button class="choice-btn" id="choiceBtn2" type="button"></button>
+</div>
+
+    <div class="result-wrap">
+      <div class="result is-placeholder" id="result">
+        <div class="paper-fold"></div>
+
+        <div class="result-top">
+          <div class="result-icon" id="resultIcon">✨</div>
+          <div class="result-badges">
+            <span class="badge badge-place" id="placeBadge">Any place</span>
+            <span class="badge badge-mood" id="moodBadge">Any mood</span>
+          </div>
+        </div>
+
+        <div class="result-title" id="resultTitle">
+          Your activity will appear here
+        </div>
+
+        <div class="result-subtitle" id="resultSubtitle">
+          Press the button to get an idea
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script src="activities.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
