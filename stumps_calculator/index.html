@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Підбір марок за тарифом</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --panel: rgba(255,255,255,0.92);
+      --panel-strong: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: rgba(31,41,55,0.08);
+      --shadow: 0 10px 24px rgba(31,41,55,0.10);
+      --accent: #4f46e5;
+      --accent-soft: rgba(79,70,229,0.12);
+      --good: #0f766e;
+      --warn: #b45309;
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(168,85,247,0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(59,130,246,0.16), transparent 22%),
+        linear-gradient(180deg, #fcfcff 0%, #f4f7fb 100%);
+      min-height: 100vh;
+    }
+
+    body.has-sticky-tariff {
+      padding-top: 96px;
+    }
+
+    .sticky-tariff-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      padding: 10px 12px 12px;
+      background: rgba(246,247,251,0.86);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(31,41,55,0.08);
+    }
+
+    .sticky-tariff-inner {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    .sticky-tariff-title {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 14px 12px 28px;
+    }
+
+    .hero {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .hero-card {
+      background: var(--panel);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.7);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      padding: 18px 16px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(24px, 7vw, 34px);
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+    }
+
+    .subtitle {
+      margin: 0;
+      max-width: 100%;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    @media (min-width: 981px) {
+      .grid {
+        grid-template-columns: 320px 1fr;
+        gap: 18px;
+      }
+
+      .wrap {
+        max-width: 1180px;
+        padding: 28px 18px 48px;
+      }
+
+      .hero {
+        margin-bottom: 22px;
+      }
+
+      .hero-card {
+        padding: 28px;
+        border-radius: 30px;
+      }
+
+      .subtitle {
+        font-size: 17px;
+      }
+
+      .sticky-tariff-inner {
+        max-width: 1180px;
+      }
+
+      body.has-sticky-tariff {
+        padding-top: 104px;
+      }
+    }
+
+    .panel {
+      background: var(--panel);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.72);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px 12px;
+    }
+
+    .section-title {
+      margin: 0 0 10px;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .tariff-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 0;
+    }
+
+    .tariff-btn {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.96);
+      border-radius: 16px;
+      padding: 14px 15px;
+      cursor: pointer;
+      transition: 0.2s ease;
+      text-align: left;
+      min-height: 68px;
+      width: 100%;
+    }
+
+    .tariff-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(31,41,55,0.08);
+    }
+
+    .tariff-btn.active {
+      border-color: rgba(79,70,229,0.35);
+      background: linear-gradient(180deg, #ffffff 0%, #eef0ff 100%);
+      box-shadow: inset 0 0 0 1px rgba(79,70,229,0.15);
+    }
+
+    .tariff-label {
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 2px;
+    }
+
+    .tariff-value {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    label {
+      display: block;
+      margin: 14px 0 7px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    textarea, input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 14px;
+      font: inherit;
+      font-size: 16px;
+      color: var(--text);
+      background: rgba(255,255,255,0.98);
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    textarea:focus, input:focus {
+      border-color: rgba(79,70,229,0.35);
+      box-shadow: 0 0 0 4px rgba(79,70,229,0.10);
+    }
+
+    textarea {
+      min-height: 116px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    .settings-panel {
+      display: grid;
+      gap: 12px;
+    }
+
+    .settings-top {
+      display: grid;
+      gap: 8px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    @media (min-width: 520px) {
+      .row {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    button.primary, button.secondary {
+      border: 0;
+      border-radius: 14px;
+      padding: 15px 18px;
+      font: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+      min-height: 50px;
+      width: 100%;
+    }
+
+    button.primary:hover, button.secondary:hover { transform: translateY(-1px); }
+    button.primary:active, button.secondary:active { transform: translateY(0); }
+
+    button.primary {
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      color: white;
+      box-shadow: 0 14px 24px rgba(79,70,229,0.24);
+    }
+
+    button.secondary {
+      background: white;
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    .stamps-box {
+      margin-top: 4px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .marks-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      min-height: 46px;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 14px;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .marks-toggle-text {
+      pointer-events: none;
+    }
+
+    .marks-toggle-icon {
+      font-size: 14px;
+      line-height: 1;
+      pointer-events: none;
+      transition: transform 0.2s ease;
+    }
+
+    .stamps-box.is-open .marks-toggle-icon {
+      transform: rotate(180deg);
+    }
+
+    .stamps-content {
+      display: none;
+    }
+
+    .stamps-box.is-open .stamps-content {
+      display: block;
+      margin-top: 12px;
+    }
+
+    .stamp-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 0;
+    }
+
+    .stamp-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      color: #111827;
+      font-weight: 700;
+      font-size: 12px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.78), 0 3px 10px rgba(31,41,55,0.06);
+    }
+
+    .stamp-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.9);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
+    }
+
+    .results-top {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .summary-card {
+      background: rgba(255,255,255,0.88);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 8px 8px;
+      min-width: 0;
+    }
+
+    .summary-card .k {
+      font-size: 10px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .summary-card .v {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .results-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .combo-card {
+      background: rgba(255,255,255,0.92);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px;
+    }
+
+    .combo-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .combo-title {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .combo-meta {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .combo-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 6px;
+    }
+
+    .tag {
+      padding: 5px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #f8fafc;
+      border: 1px solid rgba(31,41,55,0.07);
+    }
+
+    .tag.exact {
+      color: var(--good);
+      background: rgba(15,118,110,0.08);
+      border-color: rgba(15,118,110,0.14);
+    }
+
+    .tag.over {
+      color: var(--warn);
+      background: rgba(180,83,9,0.08);
+      border-color: rgba(180,83,9,0.14);
+    }
+
+    .empty {
+      padding: 18px 12px;
+      border: 1px dashed rgba(31,41,55,0.14);
+      border-radius: 14px;
+      text-align: center;
+      color: var(--muted);
+      background: rgba(255,255,255,0.60);
+      font-size: 13px;
+    }
+
+    .footer-note {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <div class="sticky-tariff-bar">
+    <div class="sticky-tariff-inner">
+      <div class="sticky-tariff-title">Тариф</div>
+      <div class="tariff-switch">
+        <button class="tariff-btn active" data-tariff="1.30">
+          <div class="tariff-label">Європа</div>
+          <div class="tariff-value">1,30 €</div>
+        </button>
+        <button class="tariff-btn" data-tariff="1.45">
+          <div class="tariff-label">США та Азія</div>
+          <div class="tariff-value">1,45 €</div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <section class="hero">
+      <div class="hero-card">
+        <h1>Підбір номіналів марок за тарифом</h1>
+        <p class="subtitle">
+          Введи номінали, обери тариф і натисни кнопку. Сайт покаже комбінації, які дають потрібну суму або невеликий запас.
+        </p>
+      </div>
+    </section>
+
+    <section class="grid">
+      <aside class="panel">
+        <div class="settings-panel">
+          <div class="settings-top">
+            <h2 class="section-title">Налаштування</h2>
+            <p class="small">Вводь марки через кому, пробіл або з нового рядка. Формат: 0,53 або 0.53.</p>
+          </div>
+
+          <div>
+            <label for="stampsInput">Номінали марок</label>
+            <textarea id="stampsInput">0,53, 0,45, 0,50, 0,61, 0,63, 0,54, 0,88, 0,47, 0,58, 0,65, 0,85, 0,75, 0,80, 0,68, 0,70, 0,86, 0,95, 0,57, 1,05, 0,78, 0,91</textarea>
+          </div>
+
+          <div class="row">
+            <div>
+              <label for="maxOverInput">Макс. запас</label>
+              <input id="maxOverInput" type="number" min="0" max="20" step="1" value="5" />
+            </div>
+            <div>
+              <label for="maxStampsInput">Макс. марок у комбінації</label>
+              <input id="maxStampsInput" type="number" min="2" max="8" step="1" value="4" />
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="primary" id="findBtn">Знайти</button>
+            <button class="secondary" id="resetBtn">Скинути</button>
+          </div>
+
+          <div class="stamps-box" id="stampsBox">
+            <button class="marks-toggle" id="marksToggle" type="button" aria-expanded="false">
+              <span class="marks-toggle-text">Твої марки</span>
+              <span class="marks-toggle-icon">▾</span>
+            </button>
+            <div class="stamps-content">
+              <div id="stampCloud" class="stamp-cloud"></div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="panel">
+        <div class="results-top">
+          <div>
+            <h2 class="section-title" style="margin-bottom:4px;">Результати</h2>
+            <div class="small" id="resultDescription">Європа: 1,30 € - 1,35 €</div>
+          </div>
+          <div class="summary">
+            <div class="summary-card">
+              <div class="k">Ціль</div>
+              <div class="v" id="targetValue">1,30</div>
+            </div>
+            <div class="summary-card">
+              <div class="k">Знайдено</div>
+              <div class="v" id="foundCount">0</div>
+            </div>
+            <div class="summary-card">
+              <div class="k">Доплата</div>
+              <div class="v" id="extraRange">0-5¢</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="resultsList" class="results-list"></div>
+        <div class="footer-note">Показуються лише комбінації, які не менші за тариф і не перевищують допустимий запас.</div>
+      </main>
+    </section>
+  </div>
+
+  <script>
+    const tariffButtons = document.querySelectorAll('.tariff-btn');
+    const stampsInput = document.getElementById('stampsInput');
+    const maxOverInput = document.getElementById('maxOverInput');
+    const maxStampsInput = document.getElementById('maxStampsInput');
+    const findBtn = document.getElementById('findBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const resultsList = document.getElementById('resultsList');
+    const stampCloud = document.getElementById('stampCloud');
+    const targetValue = document.getElementById('targetValue');
+    const foundCount = document.getElementById('foundCount');
+    const extraRange = document.getElementById('extraRange');
+    const resultDescription = document.getElementById('resultDescription');
+    const marksToggle = document.getElementById('marksToggle');
+    const stampsBox = document.getElementById('stampsBox');
+
+    let selectedTariff = 130;
+
+    const palette = [
+      '#FCA5A5', '#FDBA74', '#FCD34D', '#BEF264', '#86EFAC', '#6EE7B7',
+      '#5EEAD4', '#67E8F9', '#93C5FD', '#A5B4FC', '#C4B5FD', '#D8B4FE',
+      '#F9A8D4', '#FDA4AF', '#FECACA', '#DDD6FE', '#BFDBFE', '#A7F3D0',
+      '#FDE68A', '#FDBA74', '#FBCFE8', '#BAE6FD'
+    ];
+
+    function moneyToCents(value) {
+      return Math.round(parseFloat(String(value).replace(',', '.')) * 100);
+    }
+
+    function centsToMoney(cents) {
+      return (cents / 100).toFixed(2).replace('.', ',');
+    }
+
+    function parseStamps(text) {
+      const matches = text.match(/\d+[.,]\d{1,2}|\d+/g) || [];
+
+      return matches
+        .map(item => item.replace(',', '.'))
+        .map(Number)
+        .filter(num => !Number.isNaN(num) && num > 0)
+        .map(num => Math.round(num * 100))
+        .sort((a, b) => a - b);
+    }
+
+    function uniqueValues(array) {
+      return [...new Set(array)];
+    }
+
+    function renderStampCloud(stamps) {
+      stampCloud.innerHTML = '';
+      const unique = uniqueValues(stamps);
+
+      if (!unique.length) {
+        stampCloud.innerHTML = '<div class="small">Тут зʼявляться твої номінали.</div>';
+        return;
+      }
+
+      unique.forEach((stamp, index) => {
+        const chip = document.createElement('div');
+        chip.className = 'stamp-chip';
+        chip.style.background = palette[index % palette.length];
+        chip.innerHTML = `<span class="stamp-dot"></span><span>${centsToMoney(stamp)} €</span>`;
+        stampCloud.appendChild(chip);
+      });
+    }
+
+    function getStampColor(stamp, uniqueStamps) {
+      const index = uniqueStamps.indexOf(stamp);
+      return palette[index % palette.length];
+    }
+
+    function findCombinations(stamps, target, maxOver, maxStamps) {
+      const unique = uniqueValues(stamps);
+      const results = [];
+      const seen = new Set();
+
+      function backtrack(startIndex, combo, sum) {
+        if (combo.length >= 2 && sum >= target && sum <= target + maxOver) {
+          const key = combo.slice().sort((a, b) => a - b).join('-');
+          if (!seen.has(key)) {
+            seen.add(key);
+            results.push({ combo: [...combo], sum });
+          }
+        }
+
+        if (combo.length >= maxStamps || sum > target + maxOver) return;
+
+        for (let i = startIndex; i < unique.length; i++) {
+          combo.push(unique[i]);
+          backtrack(i, combo, sum + unique[i]);
+          combo.pop();
+        }
+      }
+
+      backtrack(0, [], 0);
+
+      return results.sort((a, b) => {
+        const overA = a.sum - target;
+        const overB = b.sum - target;
+        if (overA !== overB) return overA - overB;
+        if (a.combo.length !== b.combo.length) return a.combo.length - b.combo.length;
+        return a.sum - b.sum;
+      });
+    }
+
+    function renderResults(results, target, maxOver, tariffName, uniqueStamps) {
+      resultsList.innerHTML = '';
+      targetValue.textContent = centsToMoney(target);
+      foundCount.textContent = String(results.length);
+      extraRange.textContent = `0-${maxOver}¢`;
+      resultDescription.textContent = `${tariffName}: ${centsToMoney(target)} € - ${centsToMoney(target + maxOver)} €`;
+
+      if (!results.length) {
+        resultsList.innerHTML = '<div class="empty">Нічого не знайдено. Спробуй більший запас або більшу кількість марок у комбінації.</div>';
+        return;
+      }
+
+      results.forEach((item, index) => {
+        const over = item.sum - target;
+        const card = document.createElement('div');
+        card.className = 'combo-card';
+
+        const tags = item.combo.map(stamp => {
+          const color = getStampColor(stamp, uniqueStamps);
+          return `<span class="tag" style="background:${color}; border-color: rgba(255,255,255,0.7);">${centsToMoney(stamp)} €</span>`;
+        }).join('');
+
+        card.innerHTML = `
+          <div class="combo-head">
+            <div>
+              <div class="combo-title">${index + 1}. ${centsToMoney(item.sum)} €</div>
+              <div class="combo-meta">${item.combo.length} марок · ${over === 0 ? 'рівно' : `+${over}¢`}</div>
+            </div>
+            <div class="tag ${over === 0 ? 'exact' : 'over'}">${over === 0 ? 'Рівно' : `+${over}¢`}</div>
+          </div>
+          <div class="combo-tags">${tags}</div>
+          <div class="combo-tags">
+            <span class="tag">${item.combo.map(centsToMoney).join(' + ')}</span>
+          </div>
+        `;
+
+        resultsList.appendChild(card);
+      });
+    }
+
+    function getTariffName() {
+      return selectedTariff === 130 ? 'Європа' : 'США та Азія';
+    }
+
+    function runSearch() {
+      const stamps = parseStamps(stampsInput.value);
+      const uniqueStamps = uniqueValues(stamps);
+      const maxOver = Math.max(0, Math.min(20, Number(maxOverInput.value) || 5));
+      const maxStamps = Math.max(2, Math.min(8, Number(maxStampsInput.value) || 4));
+
+      renderStampCloud(stamps);
+
+      if (!stamps.length) {
+        resultsList.innerHTML = '<div class="empty">Введи хоча б один номінал</div>';
+        foundCount.textContent = '0';
+        return;
+      }
+
+      const results = findCombinations(stamps, selectedTariff, maxOver, maxStamps);
+      renderResults(results, selectedTariff, maxOver, getTariffName(), uniqueStamps);
+    }
+
+    tariffButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        tariffButtons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+        selectedTariff = moneyToCents(button.dataset.tariff);
+        runSearch();
+      });
+    });
+
+    findBtn.addEventListener('click', runSearch);
+
+    resetBtn.addEventListener('click', () => {
+      selectedTariff = 130;
+      tariffButtons.forEach(btn => btn.classList.remove('active'));
+      tariffButtons[0].classList.add('active');
+      stampsInput.value = '0,53, 0,45, 0,50, 0,61, 0,63, 0,54, 0,88, 0,47, 0,58, 0,65, 0,85, 0,75, 0,80, 0,68, 0,70, 0,86, 0,95, 0,57, 1,05, 0,78, 0,91';
+      maxOverInput.value = 5;
+      maxStampsInput.value = 4;
+      runSearch();
+    });
+
+    marksToggle.addEventListener('click', () => {
+      const isOpen = stampsBox.classList.toggle('is-open');
+      marksToggle.setAttribute('aria-expanded', String(isOpen));
+    });
+
+    stampsInput.addEventListener('input', () => {
+      renderStampCloud(parseStamps(stampsInput.value));
+    });
+
+    renderStampCloud(parseStamps(stampsInput.value));
+
+    if (window.innerWidth <= 520) {
+      document.querySelectorAll('input, textarea').forEach(field => {
+        field.addEventListener('focus', () => {
+          setTimeout(() => {
+            field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 250);
+        });
+      });
+    }
+
+    document.body.classList.add('has-sticky-tariff');
+    runSearch();
+  </script>
+</body>
+</html>
