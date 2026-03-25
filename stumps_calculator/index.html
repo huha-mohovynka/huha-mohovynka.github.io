@@ -513,7 +513,7 @@
 
           <div>
             <label for="stampsInput">Номінали марок</label>
-            <textarea id="stampsInput">0,53, 0,45, 0,50, 0,61, 0,63, 0,54, 0,88, 0,47, 0,58, 0,65, 0,85, 0,75, 0,80, 0,68, 0,70, 0,86, 0,95, 0,57, 1,05, 0,78, 0,91</textarea>
+            <textarea id="stampsInput"></textarea>
           </div>
 
           <div class="row">
@@ -590,6 +590,9 @@
 
     let selectedTariff = 130;
 
+    const DEFAULT_STAMPS_VALUE = '0,53, 0,45, 0,50, 0,61, 0,63, 0,54, 0,88, 0,47, 0,58, 0,65, 0,85, 0,75, 0,80, 0,68, 0,70, 0,86, 0,95, 0,57, 1,05, 0,78, 0,91';
+    const STAMPS_STORAGE_KEY = 'stampCalculator.stampsInput';
+
     const palette = [
       '#FCA5A5', '#FDBA74', '#FCD34D', '#BEF264', '#86EFAC', '#6EE7B7',
       '#5EEAD4', '#67E8F9', '#93C5FD', '#A5B4FC', '#C4B5FD', '#D8B4FE',
@@ -603,6 +606,15 @@
 
     function centsToMoney(cents) {
       return (cents / 100).toFixed(2).replace('.', ',');
+    }
+
+    function loadStampsFromStorage() {
+      const savedValue = localStorage.getItem(STAMPS_STORAGE_KEY);
+      return savedValue && savedValue.trim() ? savedValue : DEFAULT_STAMPS_VALUE;
+    }
+
+    function saveStampsToStorage(value) {
+      localStorage.setItem(STAMPS_STORAGE_KEY, value);
     }
 
     function parseStamps(text) {
@@ -754,7 +766,8 @@
       selectedTariff = 130;
       tariffButtons.forEach(btn => btn.classList.remove('active'));
       tariffButtons[0].classList.add('active');
-      stampsInput.value = '0,53, 0,45, 0,50, 0,61, 0,63, 0,54, 0,88, 0,47, 0,58, 0,65, 0,85, 0,75, 0,80, 0,68, 0,70, 0,86, 0,95, 0,57, 1,05, 0,78, 0,91';
+      stampsInput.value = DEFAULT_STAMPS_VALUE;
+      saveStampsToStorage(stampsInput.value);
       maxOverInput.value = 5;
       maxStampsInput.value = 4;
       runSearch();
@@ -766,9 +779,11 @@
     });
 
     stampsInput.addEventListener('input', () => {
+      saveStampsToStorage(stampsInput.value);
       renderStampCloud(parseStamps(stampsInput.value));
     });
 
+    stampsInput.value = loadStampsFromStorage();
     renderStampCloud(parseStamps(stampsInput.value));
 
     if (window.innerWidth <= 520) {
