@@ -1,0 +1,22 @@
+{
+  "name": "Підбір марок за тарифом",
+  "short_name": "Stumps",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f6f7fb",
+  "theme_color": "#f6f7fb",
+  "icons": [
+    {
+      "src": "icon-stamp-v3.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-stamp-v3.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
